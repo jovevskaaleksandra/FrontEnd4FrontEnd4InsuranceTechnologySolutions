@@ -1,0 +1,35 @@
+﻿@using FrontEnd4FrontEnd4InsuranceTechnologySolutions.Models
+
+<div style="width:@(Width * 20)px; height:@(Height * 20)px; border:2px solid black; position:relative;"
+     ondragover="event.preventDefault()"
+     @ondrop="HandleDrop">
+    @foreach (var ship in PlacedShips)
+    {
+        <div style="position:absolute;
+                        left:@(ship.X * 20)px;
+                        top:@(ship.Y * 20)px;
+                        width:@(ship.Width * 20)px;
+                        height:@(ship.Height * 20)px;
+                        background-color:orange;
+                        border:1px solid black;
+                        display:flex;
+                        align-items:center;
+                        justify-content:center;">
+            @ship.ShipDesignation
+        </div>
+    }
+</div>
+
+
+@code {
+    [Parameter] public int Width { get; set; }
+    [Parameter] public int Height { get; set; }
+    [Parameter] public List<PlacedShip> PlacedShips { get; set; } = new();
+    [Parameter] public EventCallback OnShipDrop { get; set; }
+
+    private async Task HandleDrop()
+    {
+        if (OnShipDrop.HasDelegate)
+            await OnShipDrop.InvokeAsync();
+    }
+}

@@ -1,0 +1,113 @@
+﻿@page "/"
+@using FrontEnd4FrontEnd4InsuranceTechnologySolutions.Components
+@using FrontEnd4FrontEnd4InsuranceTechnologySolutions.Models
+@using FrontEnd4FrontEnd4InsuranceTechnologySolutions.Services
+@using FrontEnd4FrontEnd4InsuranceTechnologySolutions.State
+@inject FleetService FleetService
+@inject AnchorageState State
+
+<h3>Fleet</h3>
+<ShipList Ships="State.RemainingShips" OnShipDrag="OnShipDrag" />
+
+<h3>Anchorage</h3>
+<Anchorage Width="@AnchorageWidth" Height="@AnchorageHeight"
+           PlacedShips="State.PlacedShips" OnShipDrop="OnShipDrop" />
+
+<button @onclick="LoadFleet" style="margin-top:10px;">Try Again!</button>
+
+@code {
+    private FleetItem? draggedShip;
+    private int AnchorageWidth;
+    private int AnchorageHeight;
+
+    protected override async Task OnInitializedAsync()
+    {
+        await LoadFleet();
+    }
+
+    private async Task LoadFleet()
+    {
+        var fleet = await FleetService.GetRandomFleetAsync();
+        if (fleet != null)
+        {
+            int totalWidth = 0;
+            int maxHeight = 0;
+
+            foreach (var ship in fleet.Fleets)
+            {
+                totalWidth += ship.SingleShipDimensions.Width * ship.ShipCount;
+                if (ship.SingleShipDimensions.Height > maxHeight)
+                    maxHeight = ship.SingleShipDimensions.Height;
+            }
+
+            AnchorageWidth = Math.Max(fleet.AnchorageSize.Width, totalWidth);
+            AnchorageHeight = Math.Max(fleet.AnchorageSize.Height, maxHeight);
+
+            State.Reset(fleet.Fleets);
+        }
+    }
+
+
+    private void OnShipDrag(FleetItem ship)
+    {
+        draggedShip = ship;
+    }
+
+    private void OnShipDrop()
+    {
+        if (draggedShip != null)
+        {
+            int x = 0;
+            int y = 0;
+            bool placed = false;
+
+            for (int row = 0; row < AnchorageHeight; row++)
+            {
+                for (int col = 0; col < AnchorageWidth; col++)
+                {
+                    if (!IsOccupied(col, row, draggedShip.SingleShipDimensions.Width, draggedShip.SingleShipDimensions.Height))
+                    {
+                        x = col;
+                        y = row;
+                        placed = true;
+                        break;
+                    }
+                }
+                if (placed) break;
+            }
+
+            if (!placed)
+            {
+                return;
+            }
+
+            State.PlacedShips.Add(new PlacedShip
+            {
+                ShipDesignation = draggedShip.ShipDesignation,
+                X = x,
+                Y = y,
+                Width = draggedShip.SingleShipDimensions.Width,
+                Height = draggedShip.SingleShipDimensions.Height
+            });
+
+            draggedShip.ShipCount--;
+            if (draggedShip.ShipCount <= 0)
+                State.RemainingShips.Remove(draggedShip);
+
+            draggedShip = null;
+        }
+    }
+
+    private bool IsOccupied(int x, int y, int width, int height)
+    {
+        foreach (var ship in State.PlacedShips)
+        {
+            if (x < ship.X + ship.Width && x + width > ship.X &&
+                y < ship.Y + ship.Height && y + height > ship.Y)
+            {
+                return true; 
+            }
+        }
+        return false; 
+    }
+}

@@ -1,0 +1,12 @@
+﻿@using FrontEnd4FrontEnd4InsuranceTechnologySolutions.Models
+
+<div draggable="true"
+     @ondragstart="() => OnDrag.InvokeAsync(Ship)"
+     style="border:1px solid black; padding:4px; margin:4px; cursor:grab; background-color:#f0f0f0;">
+    @Ship.ShipDesignation (@Ship.SingleShipDimensions.Width x @Ship.SingleShipDimensions.Height)
+</div>
+
+@code {
+    [Parameter] public FleetItem Ship { get; set; } = default!;
+    [Parameter] public EventCallback<FleetItem> OnDrag { get; set; }
+}

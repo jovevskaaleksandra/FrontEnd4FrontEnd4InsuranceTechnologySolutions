@@ -1,0 +1,25 @@
+﻿@using FrontEnd4FrontEnd4InsuranceTechnologySolutions.Models
+
+<div style="border:1px solid #ccc; padding:10px; width:250px;">
+    <h4>Ships Available</h4>
+    @if (Ships == null || Ships.Count == 0)
+    {
+        <p>No ships available.</p>
+    }
+    else
+    {
+        @foreach (var ship in Ships)
+        {
+            <ShipCard Ship="ship" OnDrag="OnShipDrag" />
+            <div style="font-size:0.9em; margin-bottom:8px;">
+                Remaining: @ship.ShipCount
+            </div>
+        }
+    }
+</div>
+
+@code {
+    [Parameter] public List<FleetItem> Ships { get; set; } = new();
+    [Parameter] public EventCallback<FleetItem> OnShipDrag { get; set; }
+}
+
